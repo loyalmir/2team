@@ -891,7 +891,7 @@
 
   <div class="date-wrap">
     <span id="dateDisplay" title="탭해서 날짜 수정">
-      <span id="dateText">6월 14일 일요일</span>
+      <span id="dateText">날짜를 입력하세요</span>
       <span class="edit-icon">✏️</span>
     </span>
     <input type="text" id="dateInput" maxlength="30">
@@ -1014,27 +1014,28 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-const app = initializeApp({ databaseURL: "https://k-hary-default-rtdb.firebaseio.com/" });
+/* ═══════════════════════════════════════════════════════════
+   ⚙️ 설정 — 여기 두 줄만 바꾸면 됩니다
+   ───────────────────────────────────────────────────────────
+   1) FIREBASE_URL : 본인 Firebase Realtime Database 주소
+   2) DB_PATH      : 저장 경로 (다른 앱과 겹치지 않게 고유하게)
+   ═══════════════════════════════════════════════════════════ */
+const FIREBASE_URL = "https://otherteam-2b3f6-default-rtdb.firebaseio.com/";
+const DB_PATH = "siksu/teamday";
+
+/* ── 처음 켰을 때 들어갈 기본 명단 (비워둠) ──
+   앱에서 직접 "추가" 버튼으로 이름을 넣어도 되고,
+   아래 배열에 미리 적어둬도 됩니다.
+   예) { name:'홍길동', intro:false }   ← 일반
+       { name:'초대손님', intro:true }  ← ★(초대) 표시
+*/
+const DEFAULT_MALE = [];
+const DEFAULT_FEMALE = [];
+
+const app = initializeApp({ databaseURL: FIREBASE_URL });
 const db = getDatabase(app);
-const DB_PATH = "siksu/teamday";   // 주간 식수(siksu/main)와 분리된 별도 경로
 
-let data = { date: "6월 14일 일요일", male: [], female: [], hosts: {} };
-
-const DEFAULT_MALE = [
-  {name:'김동언',intro:false},{name:'이재열',intro:false},{name:'문정대',intro:false},
-  {name:'김건하',intro:false},{name:'선세은',intro:true},{name:'김태윤',intro:false},
-  {name:'박인국',intro:false},{name:'조한영',intro:true},{name:'정찬원',intro:false},
-  {name:'박정민',intro:false},{name:'서보현',intro:false},{name:'신민기',intro:false},
-  {name:'이승욱',intro:true},{name:'안병철',intro:false},{name:'조대희',intro:false},
-  {name:'김상우',intro:false},{name:'이승호',intro:false},{name:'임준혁',intro:false}
-];
-const DEFAULT_FEMALE = [
-  {name:'하연서',intro:false},{name:'이애령',intro:false},{name:'고연희',intro:false},
-  {name:'홍정인',intro:false},{name:'박규리',intro:false},{name:'백선우',intro:false},
-  {name:'박예정',intro:false},{name:'양은솔',intro:false},{name:'문보람',intro:false},
-  {name:'주희중',intro:true},{name:'신현영',intro:false},{name:'김민선',intro:false},
-  {name:'이승연',intro:false}
-];
+let data = { date: "날짜를 입력하세요", male: [], female: [], hosts: {} };
 
 const DEFAULT_HOSTS = {
   "1": "", "2": "", "3": "", "4": "", "5": "", "6": "",
@@ -1042,11 +1043,10 @@ const DEFAULT_HOSTS = {
 };
 
 // 달별 주문 항목(열) 정의. 각 항목은 {name, type, options[]} 구조.
-// type: 'choice'(선택지 탭) | 'text'(개인 직접입력)
+// type: 'choice'(목록에서 선택) | 'text'(개인 직접입력)
 const DEFAULT_FIELDS = [
-  { name: "음료", type: "choice", options: ["아아", "뜨아", "아이스티", "메밀차", "보리차", "둥글레차", "캐모마일꿀차", "루이보스"] },
-  { name: "음식", type: "choice", options: [] },
-  { name: "차번호", type: "text", options: [] }
+  { name: "음료", type: "choice", options: [] },
+  { name: "음식", type: "choice", options: [] }
 ];
 
 function makePerson(name, intro=false) {
@@ -1088,7 +1088,7 @@ async function loadData() {
   const snap = await get(ref(db, DB_PATH));
   if (snap.exists()) {
     data = snap.val();
-    if (!data.date) data.date = "6월 14일 일요일";
+    if (!data.date) data.date = "날짜를 입력하세요";
     if (!data.hosts) { data.hosts = {...DEFAULT_HOSTS}; saveData(); }
     // 글자 입력 방식 때 저장된 주최자 명단 1회 초기화 (탭 선택 방식 전환)
     if (!data.hostsCleared) {
@@ -1125,7 +1125,7 @@ async function loadData() {
     }
   } else {
     data = {
-      date: "6월 14일 일요일",
+      date: "날짜를 입력하세요",
       male: DEFAULT_MALE.map(p => makePerson(p.name, p.intro)),
       female: DEFAULT_FEMALE.map(p => makePerson(p.name, p.intro)),
       hosts: {...DEFAULT_HOSTS},
